@@ -161,6 +161,17 @@ export function createJapanMap(host) {
     zoomToRegion(/** @type {string} */ regionId, duration = 800) {
       api.zoomTo(bboxOf(prefsIn(regionId)), duration, 40);
     },
+    /**
+     * 結果の都道府県が見やすい範囲にズーム。
+     * 九州・沖縄は離れすぎているため、九州本土か沖縄の枠だけに寄せる。
+     */
+    zoomToResult(/** @type {number} */ prefId, duration = 900) {
+      const region = PREFECTURES.find((p) => p.id === prefId)?.region;
+      if (!region) return;
+      if (region !== 'kyushu-okinawa') { api.zoomToRegion(region, duration); return; }
+      if (prefId === 47) { api.zoomTo(OKINAWA_BOX, duration, 10); return; }
+      api.zoomTo(bboxOf(prefsIn(region).filter((id) => id !== 47)), duration, 40);
+    },
     zoomToAll(duration = 800) { api.zoomTo(FULL, duration); },
     /**
      * viewBox をアニメーションで移動

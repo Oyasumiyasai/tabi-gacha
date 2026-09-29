@@ -198,6 +198,11 @@ function startRegionSpin() {
   const pool = PREFECTURES.filter((p) => result.candidateRegions.includes(p.region)).map((p) => p.id);
   map.setCandidates(new Set(pool));
 
+  if (distance === 'near') {
+    void startNearDraw(state.token);
+    return;
+  }
+
   sound.press();
   setStep(1);
   setPhase('regionSpin', '行き先を決める', 'ボタンを押して地域をストップ！', 'stop');
@@ -215,6 +220,43 @@ function startRegionSpin() {
   };
   tick();
   state.timer = window.setInterval(tick, SPIN_MS);
+}
+
+/**
+ * 溜め → 日本全体が虹色に光る（本物・ダミー共通の演出）
+ * @param {number} token
+ * @returns {Promise<boolean>} 途中でリセットされたら false
+ */
+async function playRareReveal(token) {
+  map.lightRegion(null);
+  setBanner('', '……', 'pop');
+  els.frame.classList.add('is-charging');
+  sound.charge();
+  await wait(1000);
+  if (!alive(token)) return false;
+  els.frame.classList.remove('is-charging');
+  els.frame.classList.add('is-rare');
+  map.setRare(true);
+  flash('is-rainbow');
+  sound.rare();
+  setBanner('RARE CHANCE!!', '？？？', 'rare');
+  burstFromBanner(60);
+  return true;
+}
+
+/**
+ * 「近く」は地域が1つしかないため、地域抽選を飛ばして都道府県抽選から始める
+ * @param {number} token
+ */
+async function startNearDraw(token) {
+  if (isRareMode()) {
+    setStep(3);
+    setPhase('regionStopping', '抽選中…', 'ドキドキ…', 'wait');
+    if (!(await playRareReveal(token))) return;
+    await wait(900);
+    if (!alive(token)) return;
+  }
+  startPrefSpin();
 }
 
 /* ------------------------------------------------------------------ STEP 2: 地域決定 */
@@ -244,20 +286,7 @@ async function stopRegion() {
   }
 
   if (rare) {
-    // 溜め → 日本全体が虹色に光る（本物・ダミー共通の演出）
-    map.lightRegion(null);
-    setBanner('', '……', 'pop');
-    els.frame.classList.add('is-charging');
-    sound.charge();
-    await wait(1000);
-    if (!alive(token)) return;
-    els.frame.classList.remove('is-charging');
-    els.frame.classList.add('is-rare');
-    map.setRare(true);
-    flash('is-rainbow');
-    sound.rare();
-    setBanner('RARE CHANCE!!', '？？？', 'rare');
-    burstFromBanner(60);
+    if (!(await playRareReveal(token))) return;
   } else {
     sound.stop();
     setBanner('行き先の地域は…', regionById.get(result.regionId)?.name ?? '', 'pop');
@@ -326,13 +355,12 @@ async function stopPref() {
   const jackpot = result.effect === 'rare' && SPECIAL_PREF_IDS.includes(pref.id);
 
   if (isRareMode()) {
-    // 虹色を解除して、決定した地域へズーム
+    // 虹色を解除して、決定した地域の都道府県だけを残す
     map.setRare(false);
     els.frame.classList.remove('is-rare');
-    const regionPrefs = map.prefsIn(result.regionId);
-    map.setCandidates(new Set(regionPrefs));
-    map.zoomToRegion(result.regionId, 900);
+    map.setCandidates(new Set(map.prefsIn(result.regionId)));
   }
+  map.zoomToResult(pref.id);
   map.lightPref(null);
   map.pickPref(pref.id);
   els.frame.classList.add('is-win');
@@ -469,15 +497,17 @@ els.action.addEventListener('click', () => {
     case 'regionSpin': return void stopRegion();
     case 'regionDone': return startPrefSpin();
     case 'prefSpin': return void stopPref();
-    case 'done': reset(); return startRegionSpin();
+    case 'done': return playAgain();
     default: return undefined;
   }
 });
 
-els.againBtn.addEventListener('click', () => {
+/** 条件を選び直せるよう、いったん待機状態に戻す */
+function playAgain() {
   reset();
-  if (innerWidth < 960) scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
-});
+  if (innerWidth < 960) els.settings.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+}
+els.againBtn.addEventListener('click', playAgain);
 els.detailBtn.addEventListener('click', openDetail);
 els.detailClose.addEventListener('click', () => els.detail.close());
 els.detail.addEventListener('click', (e) => { if (e.target === els.detail) els.detail.close(); });

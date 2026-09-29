@@ -191,8 +191,9 @@ function startRegionSpin() {
   const pool = PREFECTURES.filter((p) => result.candidateRegions.includes(p.region)).map((p) => p.id);
   map.setCandidates(new Set(pool));
 
+  // 「近く」は地域が1つしかないため、地域抽選を飛ばして都道府県抽選から始める（レア演出なし）
   if (distance === 'near') {
-    void startNearDraw(state.token);
+    startPrefSpin();
     return;
   }
 
@@ -204,7 +205,6 @@ function startRegionSpin() {
   let lit = null;
   let n = 0;
   const tick = () => {
-    // 候補が1地域（近く）の場合は点滅させる
     lit = regions.length === 1 ? (lit ? null : regions[0]) : pickOther(regions, lit);
     map.lightRegion(lit);
     setBanner('ROULETTE', lit ? regionById.get(/** @type {any} */ (lit))?.name ?? '' : '', 'spin');
@@ -234,20 +234,6 @@ async function playRareReveal(token) {
   setBanner('RARE CHANCE!!', '？？？', 'rare');
   burstFromBanner(60);
   return true;
-}
-
-/**
- * 「近く」は地域が1つしかないため、地域抽選を飛ばして都道府県抽選から始める
- * @param {number} token
- */
-async function startNearDraw(token) {
-  if (isRareMode()) {
-    setPhase('regionStopping', '抽選中…', 'ドキドキ…', 'wait');
-    if (!(await playRareReveal(token))) return;
-    await wait(900);
-    if (!alive(token)) return;
-  }
-  startPrefSpin();
 }
 
 /* ------------------------------------------------------------------ STEP 2: 地域決定 */
@@ -385,8 +371,9 @@ function showResult(pref, jackpot) {
   fillTags(els.resultSpots, pref.spots.slice(0, 3).map((e) => e[0]));
   fillTags(els.resultOnsen, pref.onsen.slice(0, 2).map((e) => e[0]));
   fillTags(els.resultFoods, pref.foods.slice(0, 3).map((e) => e[0]));
-  els.resultBadge.hidden = !SPECIAL_PREF_IDS.includes(pref.id);
-  els.resultBadge.textContent = jackpot ? '激レア' : 'SSR';
+  // スタンプはレア演出で当たったときだけ
+  els.resultBadge.hidden = !jackpot;
+  els.resultBadge.textContent = 'SSR';
   els.ticketFrom.textContent = RESIDENCES.find((r) => r.id === currentSettings().residence)?.name ?? '';
   els.ticketNo.textContent = `No.${String(Math.floor(secureRandom() * 1e6)).padStart(6, '0')}`;
   const d = new Date();

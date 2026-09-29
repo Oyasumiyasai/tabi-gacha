@@ -67,7 +67,9 @@ export function draw(residenceId, distance, rng = secureRandom) {
 
   /** @type {Effect} */
   let effect = 'normal';
-  if (SPECIAL_PREF_IDS.includes(pref.id)) {
+  if (distance === 'near') {
+    // 「近く」は地域抽選を行わないため、レア演出なし
+  } else if (SPECIAL_PREF_IDS.includes(pref.id)) {
     if (rng() < RARE_RATE) effect = 'rare';
   } else if (SPECIAL_REGIONS.has(pref.region)) {
     if (rng() < FAKE_RARE_RATE) effect = 'fakeRare';

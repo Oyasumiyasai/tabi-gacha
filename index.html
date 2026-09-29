@@ -5,19 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>旅ガチャ</title>
   <meta name="description" content="ガチャを回して旅先を決める！日本地図が光るワクワクの旅先抽選アプリ">
-  <meta name="theme-color" content="#0b0d26">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23ff5fa2'/%3E%3Cpath d='M32 12l6 14 15 1-12 9 4 15-13-8-13 8 4-15-12-9 15-1z' fill='%23ffd54a'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#efe3c8">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23d9502f'/%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23f7eed9' stroke-width='3' stroke-dasharray='4 3'/%3E%3Cpath d='M32 16l4.7 10.4 11.3 1.2-8.5 7.6 2.4 11.2L32 40.6l-9.9 5.8 2.4-11.2-8.5-7.6 11.3-1.2z' fill='%23f7eed9'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <div class="sky" aria-hidden="true"></div>
+  <div class="airmail" aria-hidden="true"></div>
 
   <header class="top">
-    <h1 class="logo"><span class="logo-sub">TABI GACHA</span>旅ガチャ</h1>
+    <div class="logo-wrap">
+      <p class="logo-sub">日本全国 旅先抽選所</p>
+      <h1 class="logo">旅ガチャ</h1>
+    </div>
     <button type="button" id="mute" class="icon-btn" aria-pressed="false" aria-label="効果音オフ">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg>
     </button>
@@ -25,13 +28,14 @@
 
   <main class="layout">
     <section class="stage" aria-label="抽選ステージ">
-      <ol class="steps" id="steps" aria-label="進行状況">
-        <li data-step="1">地域ルーレット</li>
-        <li data-step="2">地域決定</li>
-        <li data-step="3">都道府県ルーレット</li>
-        <li data-step="4">行き先決定</li>
-      </ol>
       <div class="map-frame" id="mapFrame">
+        <span class="map-title" aria-hidden="true">JAPAN RAILWAY &amp; SEA ROUTES ── 日本旅行地図</span>
+        <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="36"/>
+          <path class="needle" d="M50 8 58 50 50 92 42 50Z"/><path class="needle-n" d="M50 8 58 50H42Z"/>
+          <path d="M8 50 50 44 92 50 50 56Z"/>
+          <text x="50" y="6">N</text>
+        </svg>
         <div class="map-host" id="map"></div>
         <div class="rare-aura" aria-hidden="true"></div>
         <div class="banner" id="banner" aria-live="polite">
@@ -43,12 +47,12 @@
 
     <aside class="side">
       <form class="panel settings" id="settings" aria-label="抽選の設定">
+        <label class="field">
+          <span class="field-label">住んでいる地域</span>
+          <span class="select-wrap"><select id="residence" name="residence"></select></span>
+        </label>
         <fieldset>
-          <legend>住んでいる地域</legend>
-          <div class="chips" id="residences"></div>
-        </fieldset>
-        <fieldset>
-          <legend>旅先の距離</legend>
+          <legend class="field-label">旅先の距離</legend>
           <div class="segment" id="distances"></div>
         </fieldset>
       </form>
@@ -60,22 +64,33 @@
         <p class="hint" id="hint">条件を選んで、ガチャを回そう！</p>
       </div>
 
-      <section class="panel result" id="result" hidden aria-labelledby="resultName">
-        <div class="result-head">
-          <p class="result-kicker">あなたの旅先は…</p>
-          <span class="badge" id="resultBadge" hidden>SSR</span>
+      <section class="ticket result" id="result" hidden aria-labelledby="resultName">
+        <div class="ticket-head">
+          <span>旅ガチャ 乗車券</span>
+          <span class="ticket-no" id="ticketNo"></span>
         </div>
-        <h2 class="result-name" id="resultName"></h2>
-        <p class="result-region" id="resultRegion"></p>
-        <p class="result-catch" id="resultCatch"></p>
-        <div class="result-grid">
-          <div><h3>観光地</h3><ul class="tags" id="resultSpots"></ul></div>
-          <div><h3>温泉</h3><ul class="tags" id="resultOnsen"></ul></div>
-          <div><h3>郷土料理</h3><ul class="tags" id="resultFoods"></ul></div>
+        <div class="ticket-body">
+          <p class="ticket-route">
+            <span class="ticket-from" id="ticketFrom"></span>
+            <span class="ticket-arrow" aria-hidden="true">▶</span>
+            <span class="ticket-to"><strong class="result-name" id="resultName"></strong><small>ゆき</small></span>
+          </p>
+          <p class="result-region" id="resultRegion"></p>
+          <p class="result-catch" id="resultCatch"></p>
+          <div class="result-grid">
+            <div><h3>観光地</h3><ul class="tags" id="resultSpots"></ul></div>
+            <div><h3>温泉</h3><ul class="tags" id="resultOnsen"></ul></div>
+            <div><h3>郷土料理</h3><ul class="tags" id="resultFoods"></ul></div>
+          </div>
+          <div class="result-actions">
+            <button type="button" class="btn btn-primary" id="detailBtn">詳細を見る</button>
+            <button type="button" class="btn btn-ghost" id="againBtn">もう一度引く</button>
+          </div>
+          <span class="stamp" id="resultBadge" hidden>SSR</span>
         </div>
-        <div class="result-actions">
-          <button type="button" class="btn btn-primary" id="detailBtn">詳細を見る</button>
-          <button type="button" class="btn btn-ghost" id="againBtn">もう一度引く</button>
+        <div class="ticket-foot">
+          <span id="ticketDate"></span>
+          <span>片道・途中下車 大歓迎</span>
         </div>
       </section>
     </aside>
@@ -103,5 +118,6 @@
   <footer class="foot">
     <p>地図出典：<a href="https://www.gsi.go.jp/kankyochiri/gm_jpn.html" target="_blank" rel="noopener noreferrer">地球地図日本（国土地理院）</a>を加工して作成 ／ 掲載情報は旅のきっかけです。お出かけ前に最新情報をご確認ください。</p>
   </footer>
+  <div class="airmail airmail-bottom" aria-hidden="true"></div>
 </body>
 </html>

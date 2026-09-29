@@ -18,12 +18,11 @@ const STOP_DELAYS = [95, 105, 120, 135, 155, 180, 210, 250, 300, 360, 440, 540];
 
 const els = {
   settings: $('settings'),
-  residences: $('residences'),
+  residence: /** @type {HTMLSelectElement} */ ($('residence')),
   distances: $('distances'),
   action: /** @type {HTMLButtonElement} */ ($('action')),
   actionLabel: $('actionLabel'),
   hint: $('hint'),
-  steps: $('steps'),
   frame: $('mapFrame'),
   banner: $('banner'),
   bannerKicker: $('bannerKicker'),
@@ -32,6 +31,9 @@ const els = {
   resultBadge: $('resultBadge'),
   resultName: $('resultName'),
   resultRegion: $('resultRegion'),
+  ticketFrom: $('ticketFrom'),
+  ticketNo: $('ticketNo'),
+  ticketDate: $('ticketDate'),
   resultCatch: $('resultCatch'),
   resultSpots: $('resultSpots'),
   resultOnsen: $('resultOnsen'),
@@ -98,7 +100,7 @@ function renderRadios(host, name, items, checked) {
 }
 
 const initial = loadSettings();
-renderRadios(els.residences, 'residence', RESIDENCES, initial.residence);
+for (const r of RESIDENCES) els.residence.add(new Option(r.name, r.id, false, r.id === initial.residence));
 renderRadios(els.distances, 'distance', DISTANCES, initial.distance);
 
 function currentSettings() {
@@ -133,15 +135,6 @@ function setBanner(kicker, text, mode = '') {
   if (mode) {
     void els.banner.offsetWidth; // アニメーションを再生し直す
     els.banner.classList.add(`is-${mode}`);
-  }
-}
-
-/** @param {number} step 1..4, 5 = 全完了 */
-function setStep(step) {
-  for (const li of els.steps.querySelectorAll('li')) {
-    const n = Number(/** @type {HTMLElement} */ (li).dataset.step);
-    li.classList.toggle('is-active', n === step);
-    li.classList.toggle('is-done', n < step);
   }
 }
 
@@ -204,7 +197,6 @@ function startRegionSpin() {
   }
 
   sound.press();
-  setStep(1);
   setPhase('regionSpin', '行き先を決める', 'ボタンを押して地域をストップ！', 'stop');
 
   const regions = result.candidateRegions;
@@ -250,7 +242,6 @@ async function playRareReveal(token) {
  */
 async function startNearDraw(token) {
   if (isRareMode()) {
-    setStep(3);
     setPhase('regionStopping', '抽選中…', 'ドキドキ…', 'wait');
     if (!(await playRareReveal(token))) return;
     await wait(900);
@@ -292,7 +283,6 @@ async function stopRegion() {
     setBanner('行き先の地域は…', regionById.get(result.regionId)?.name ?? '', 'pop');
   }
 
-  setStep(2);
   setPhase('regionDone', '都道府県を決める', rare ? 'まさかの激レア演出!? 都道府県を決めよう！' : '次は都道府県ルーレット！', 'go');
 }
 
@@ -301,7 +291,6 @@ async function stopRegion() {
 function startPrefSpin() {
   const result = /** @type {DrawResult} */ (state.result);
   sound.press();
-  setStep(3);
 
   if (isRareMode()) {
     // レア演出中は日本全体を光らせたまま、地域を悟られないようにする
@@ -370,7 +359,6 @@ async function stopPref() {
   burstFromBanner(jackpot ? 260 : 130);
   if (jackpot) setTimeout(() => alive(token) && burstFromBanner(160), 600);
 
-  setStep(5);
   setPhase('done', 'もう一度引く', 'いってらっしゃい！', 'go');
 
   await wait(900);
@@ -398,7 +386,11 @@ function showResult(pref, jackpot) {
   fillTags(els.resultOnsen, pref.onsen.slice(0, 2).map((e) => e[0]));
   fillTags(els.resultFoods, pref.foods.slice(0, 3).map((e) => e[0]));
   els.resultBadge.hidden = !SPECIAL_PREF_IDS.includes(pref.id);
-  els.resultBadge.textContent = jackpot ? 'SSR ★ 激レア' : 'SSR';
+  els.resultBadge.textContent = jackpot ? '激レア' : 'SSR';
+  els.ticketFrom.textContent = RESIDENCES.find((r) => r.id === currentSettings().residence)?.name ?? '';
+  els.ticketNo.textContent = `No.${String(Math.floor(secureRandom() * 1e6)).padStart(6, '0')}`;
+  const d = new Date();
+  els.ticketDate.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} 発行`;
   els.result.classList.toggle('is-jackpot', jackpot);
   els.result.hidden = false;
   if (innerWidth < 960) els.result.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
@@ -485,7 +477,6 @@ function reset() {
   els.settings.toggleAttribute('inert', false);
   els.settings.classList.remove('is-locked');
   setBanner('', '');
-  setStep(0);
   setPhase('idle', '旅先を決める', '条件を選んで、ガチャを回そう！', 'go');
 }
 

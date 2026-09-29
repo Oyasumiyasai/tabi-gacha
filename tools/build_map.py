@@ -89,12 +89,13 @@ for g in d['objects']['japan']['geometries']:
             rings.append(xy)
         if not rings: continue
         a = area(rings[0])
-        cx += sum(p[0] for p in rings[0])/len(rings[0])*a; cy += sum(p[1] for p in rings[0])/len(rings[0])*a; wsum += a
+        if a > wsum:  # label goes on the largest island
+            cx = sum(p[0] for p in rings[0])/len(rings[0]); cy = sum(p[1] for p in rings[0])/len(rings[0]); wsum = a
         for x, y in rings[0]:
             bx0, by0, bx1, by1 = min(bx0, x), min(by0, y), max(bx1, x), max(by1, y)
         for r in rings:
             parts.append('M' + 'L'.join(f'{x:.1f},{y:.1f}' for x, y in r) + 'Z')
-    prefs.append({'id': pid, 'd': ''.join(parts), 'cx': round(cx/wsum, 1), 'cy': round(cy/wsum, 1),
+    prefs.append({'id': pid, 'd': ''.join(parts), 'cx': round(cx, 1), 'cy': round(cy, 1),
                   'bbox': [round(bx0, 1), round(by0, 1), round(bx1, 1), round(by1, 1)]})
 
 prefs.sort(key=lambda p: p['id'])

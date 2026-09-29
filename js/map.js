@@ -41,7 +41,7 @@ export function createJapanMap(host) {
     id: 'rainbow', gradientUnits: 'userSpaceOnUse',
     x1: 0, y1: 0, x2: MAP_SIZE.width / 2, y2: MAP_SIZE.height / 3, spreadMethod: 'repeat',
   });
-  ['#ff5fa2', '#ffb547', '#fff27a', '#7dff8a', '#4fc3ff', '#b98cff', '#ff5fa2'].forEach((c, i, arr) => {
+  ['#d9502f', '#e8b53a', '#f2d875', '#7fa34a', '#2f8f86', '#3b6ea5', '#8a4f7d', '#d9502f'].forEach((c, i, arr) => {
     rainbow.appendChild(el('stop', { offset: i / (arr.length - 1), 'stop-color': c }));
   });
   rainbow.appendChild(el('animateTransform', {

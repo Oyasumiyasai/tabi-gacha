@@ -1,7 +1,7 @@
 // @ts-check
 /** 紙吹雪エフェクト（canvas） */
 
-const COLORS = ['#ff5fa2', '#ffd54a', '#7dff8a', '#4fc3ff', '#b98cff', '#ffffff'];
+const COLORS = ['#d9502f', '#e8b53a', '#2f8f86', '#3b6ea5', '#8a4f7d', '#f6ecd6'];
 
 /**
  * @typedef {{x:number,y:number,vx:number,vy:number,r:number,rot:number,vr:number,c:string,life:number}} Particle

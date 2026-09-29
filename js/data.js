@@ -20,13 +20,13 @@
 
 /** @type {{id: RegionId, name: string, color: string}[]} */
 export const REGIONS = [
-  { id: 'hokkaido-tohoku', name: '北海道・東北', color: '#4fc3ff' },
-  { id: 'kanto', name: '関東', color: '#ff5fa2' },
-  { id: 'chubu', name: '中部', color: '#7dff8a' },
-  { id: 'kinki', name: '近畿', color: '#ffb547' },
-  { id: 'chugoku', name: '中国', color: '#b98cff' },
-  { id: 'shikoku', name: '四国', color: '#4fffe0' },
-  { id: 'kyushu-okinawa', name: '九州・沖縄', color: '#ff7a59' },
+  { id: 'hokkaido-tohoku', name: '北海道・東北', color: '#3b86b0' },
+  { id: 'kanto', name: '関東', color: '#d9502f' },
+  { id: 'chubu', name: '中部', color: '#6f9a3a' },
+  { id: 'kinki', name: '近畿', color: '#e0a526' },
+  { id: 'chugoku', name: '中国', color: '#8a4f7d' },
+  { id: 'shikoku', name: '四国', color: '#2f8f86' },
+  { id: 'kyushu-okinawa', name: '九州・沖縄', color: '#c46a35' },
 ];
 
 /** 住んでいる地域 → 抽選上の地域 */

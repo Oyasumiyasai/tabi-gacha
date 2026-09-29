@@ -43,6 +43,15 @@ button, select { font: inherit; color: inherit; }
 a { color: var(--red-deep); }
 :focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
 
+.file-warning {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--red);
+  color: var(--paper-2);
+  font-weight: 700;
+  text-align: center;
+}
+
 /* エアメール風のストライプ */
 .airmail {
   height: 10px;
@@ -155,6 +164,8 @@ a { color: var(--red-deep); }
   pointer-events: none;
 }
 @media (max-width: 600px) { .map-title { display: none; } }
+/* 抽選中の地名表示と重ならないよう、表示中は地図タイトルを隠す */
+.map-frame:has(.banner-text:not(:empty)) .map-title { opacity: 0; }
 .compass {
   position: absolute;
   right: 4%;
